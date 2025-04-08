@@ -33,7 +33,6 @@ export const loginController = async (req: Request, res: Response): Promise<void
       sameSite: "strict",
     });
 
-    console.log(" Sending Response to Frontend:", result);
     res.status(200).json(result);
   } catch (error) {
     console.error("Login Error:", error);

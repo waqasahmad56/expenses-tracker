@@ -68,30 +68,7 @@ const GroupList: React.FC = () => {
   return (
     <>
     <Box sx={{ mt:15, px: 2 }}>
-{/*
-<div style={{ position: "relative", width: "100%" }}>
-  <div
-    style={{
-      position: "fixed",
-      top: "1px",
-      right: "330px",
-      zIndex:"1000"
-    }}
-  >
-    <p
-      style={{
-        color: "white",
-        border: "none",
-        borderRadius: "5px",
-        cursor: "pointer",
-        fontSize:"22px",
 
-      }}
-    >
-      {user.name}
-    </p>
-  </div>
-</div> */}
  <div style={{ position: "relative", width: "100%" }}>
       <div
         style={{

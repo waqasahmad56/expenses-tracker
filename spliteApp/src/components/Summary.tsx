@@ -46,7 +46,7 @@ const Summary: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Latest Expense Summary</h2>
+      <h2 style={styles.heading}> Expense Summary</h2>
 
       <div style={styles.tableWrapper}>
         <table style={styles.table}>

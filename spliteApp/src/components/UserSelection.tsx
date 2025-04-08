@@ -18,6 +18,11 @@ import {
   Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+interface IUser {
+  _id: string;
+  name: string;
+  email: string;
+}
 
 interface ISplitAmount {
   userId: string;
@@ -44,7 +49,7 @@ const UserSelection: React.FC = () => {
   const [openAddMemberModal, setOpenAddMemberModal] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  const { data: users } = useQuery({
+  const { data: users } = useQuery<IUser[]>({
     queryKey: ["users"],
     queryFn: fetchUsers,
   });
@@ -93,13 +98,116 @@ const UserSelection: React.FC = () => {
   const getUserName = (userId: string) =>
     currentGroup?.users.find((user) => user._id === userId)?.name;
 
-  if (isLoading) return <p style={styles.loadingText}>Loading...</p>;
+  if (isLoading) return <p style={styles.loadingText}>Loading</p>;
   if (error) return <p style={styles.errorText}>Error fetching data</p>;
   if (!expenses || expenses.length === 0)
     return (
+  <>
       <p style={{ marginTop: "140px", textAlign: "center" }}>
-        No expenses found for this group.
+        No expenses for this group
       </p>
+
+      <div style={{ position: 'relative' }}>
+  <Button
+    variant="contained"
+    color="secondary"
+    style={{
+      ...styles.modalButton,
+      position: "fixed",
+      top: "16.7px",
+      right: "180px",
+      zIndex: 1000,
+    }}
+    onClick={() => setOpenAddMemberModal(true)}
+  >
+    Add Member
+  </Button>
+</div>
+
+
+
+          <Modal
+          open={openAddMemberModal}
+          onClose={() => setOpenAddMemberModal(false)}
+          style={styles.modal}
+        >
+          <Box sx={styles.modalContent}>
+            <Typography variant="h6" style={styles.headingStyle}>
+              Add Member
+            </Typography>
+            <input
+              type="text"
+              value={currentGroup?.name || ""}
+              readOnly
+              style={{
+                marginBottom: "16px",
+                width: "100%",
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+              }}
+            />
+            {isLoading ? (
+              <Typography>Loading users...</Typography>
+            ) : (
+              <Box sx={{ maxHeight: 200, overflowY: "auto", mb: 2, p: 1 }}>
+                {users
+                  ?.filter(
+                    (user) =>
+                      !currentGroup?.users.some(
+                        (groupUser) => groupUser._id === user._id
+                      )
+                  )
+                  .map((user) => (
+                    <div
+                      key={user._id}
+                      style={{
+                        marginBottom: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        id={user._id}
+                        value={user._id}
+                        name="users"
+                        checked={selectedUsers.includes(user._id)}
+                        onChange={() => handleSelectUser(user._id)}
+                        style={{ marginRight: "8px" }}
+                      />
+
+                      <label htmlFor={user._id} style={{ cursor: "pointer" }}>
+                        {user.name}
+                      </label>
+                    </div>
+                  ))}
+              </Box>
+            )}
+            <div style={{ display: "flex", gap: "20px" }}>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleAddMembers}
+                sx={{ mt: 2 }}
+              >
+                Add Members
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => setOpenAddMemberModal(false)}
+                sx={{ mt: 2 }}
+              >
+                Close
+              </Button>
+            </div>
+          </Box>
+        </Modal>
+        <AddExpenseForm />
+
+      </>
+
     );
 
   const balance: Record<string, number> = {};
@@ -119,7 +227,7 @@ const UserSelection: React.FC = () => {
     <>
       <div style={styles.container}>
         <h2 style={styles.heading}>
-          {currentGroup ? `${currentGroup.name} Expenses` : ""}
+          {currentGroup ? `${currentGroup.name} Expense` : ""}
         </h2>
 
         {expenses.map((expense) => (
@@ -148,7 +256,15 @@ const UserSelection: React.FC = () => {
                 </Typography>
                 <Typography>
                   <strong>Date and Time:</strong>{" "}
-                  {new Date(expense.createdAt).toLocaleString()}
+                  {new Date(expense.createdAt).toLocaleString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: true,
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}
                 </Typography>
               </Box>
 
@@ -273,21 +389,24 @@ const UserSelection: React.FC = () => {
                     style={{ marginBottom: "10px", textAlign: "left" }}
                   >
                     <strong style={{ color: "green", display: "block" }}>
-                      • {getUserName(id)} will receive {amount.toFixed(2)}
+                      . {getUserName(id)} will receive {amount.toFixed(2)}
                     </strong>
+
                     {Object.entries(balance)
-                      .filter(([payerId, payerAmount]) => payerAmount < 0)
-                      .map(([payerId, payerAmount]) => (
-                        <Typography
-                          key={payerId}
-                          style={{ marginLeft: "15px", color: "green" }}
-                        >
-                          • {getUserName(payerId)} should pay{" "}
-                          {Math.abs(
-                            (payerAmount * amount) / Math.abs(totalNegative)
-                          ).toFixed(2)}
-                        </Typography>
-                      ))}
+                      .filter((entry) => entry[1] < 0)
+                      .map(([payerId, payerAmount]) => {
+                        const amountToPay = Math.abs(
+                          (payerAmount * amount) / Math.abs(totalNegative)
+                        ).toFixed(2);
+                        return (
+                          <Typography
+                            key={payerId}
+                            style={{ marginLeft: "15px", color: "green" }}
+                          >
+                            . {getUserName(payerId)} should pay {amountToPay}
+                          </Typography>
+                        );
+                      })}
                   </div>
                 );
               } else if (amount < 0) {
@@ -300,7 +419,7 @@ const UserSelection: React.FC = () => {
                       textAlign: "left",
                     }}
                   >
-                    • {getUserName(id)} owes {Math.abs(amount).toFixed(2)}
+                    . {getUserName(id)} owes {Math.abs(amount).toFixed(2)}
                   </Typography>
                 );
               }
@@ -325,26 +444,27 @@ const UserSelection: React.FC = () => {
             <Typography variant="h6" style={styles.headingStyle}>
               My Balance
             </Typography>
-            {userId && balance[userId] !== undefined ? (
-              balance[userId] > 0 ? (
+            {(userId ?? "") !== "" && balance[userId ?? ""] !== undefined ? (
+              balance[userId ?? ""] > 0 ? (
                 <div style={{ textAlign: "left" }}>
                   <Typography
                     variant="body1"
                     style={{ color: "green", marginBottom: "10px" }}
                   >
-                    • You will receive {balance[userId].toFixed(2)}
+                    . You will receive {balance[userId ?? ""].toFixed(2)}
                   </Typography>
+
                   {Object.entries(balance)
-                    .filter(([id, amt]) => amt < 0)
+                    .filter((entry) => entry[1] < 0)
                     .map(([id, amt]) => (
                       <Typography
                         key={id}
                         variant="body2"
                         style={{ marginLeft: "15px", color: "green" }}
                       >
-                        • {getUserName(id)} should pay{" "}
+                        .{getUserName(id)} should pay{" "}
                         {Math.abs(
-                          (amt * balance[userId]) /
+                          (amt * balance[userId ?? ""]) /
                             Math.abs(
                               Object.values(balance).reduce(
                                 (acc, val) => (val < 0 ? acc + val : acc),
@@ -355,16 +475,17 @@ const UserSelection: React.FC = () => {
                       </Typography>
                     ))}
                 </div>
-              ) : balance[userId] < 0 ? (
+              ) : balance[userId ?? ""] < 0 ? (
                 <div style={{ textAlign: "left" }}>
                   <Typography
                     variant="body1"
                     style={{ color: "red", marginBottom: "10px" }}
                   >
-                    • You owe {Math.abs(balance[userId]).toFixed(2)}
+                    . You owe {Math.abs(balance[userId ?? ""]).toFixed(2)}
                   </Typography>
+
                   {Object.entries(balance)
-                    .filter(([id, amt]) => amt > 0)
+                    .filter((entry) => entry[1] > 0)
                     .map(([id, amt]) => (
                       <Typography
                         key={id}
@@ -373,7 +494,7 @@ const UserSelection: React.FC = () => {
                       >
                         •You pay{" "}
                         {Math.abs(
-                          (amt * Math.abs(balance[userId])) /
+                          (amt * Math.abs(balance[userId ?? ""])) /
                             Object.values(balance).reduce(
                               (acc, val) => (val > 0 ? acc + val : acc),
                               0
@@ -468,29 +589,29 @@ const UserSelection: React.FC = () => {
                   ))}
               </Box>
             )}
-            <div style={{display:"flex",gap:"20px"}}>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleAddMembers}
-              sx={{ mt: 2 }}
-
-            >
-              Add Members
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={() => setOpenAddMemberModal(false)}
-              sx={{ mt: 2 }}
-            >
-              Close
-            </Button>
+            <div style={{ display: "flex", gap: "20px" }}>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleAddMembers}
+                sx={{ mt: 2 }}
+              >
+                Add Members
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => setOpenAddMemberModal(false)}
+                sx={{ mt: 2 }}
+              >
+                Close
+              </Button>
             </div>
           </Box>
         </Modal>
       </div>
       <AddExpenseForm />
+
     </>
   );
 };

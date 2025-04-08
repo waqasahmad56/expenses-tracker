@@ -17,7 +17,7 @@ const AddExpenseForm = () => {
     setAmount,
     setSplitAmong,
   } = useExpenseStore();
- const navigate=useNavigate();
+  const navigate = useNavigate();
   const { data: groups, isLoading } = useGroupsQuery();
   const submitExpense = useSubmitExpense();
   const [showModal, setShowModal] = useState(false);
@@ -48,42 +48,43 @@ const AddExpenseForm = () => {
     name: string;
     users: IUser[] | string[];
   }
-  const userGroups = groups?.filter((group: IGroup) =>
-  group.users
-    .map((user) => (typeof user === "string" ? user : user._id))
-    .includes(userId!)
-) ?? [];
+  const userGroups =
+    groups?.filter((group: IGroup) =>
+      group.users
+        .map((user) => (typeof user === "string" ? user : user._id))
+        .includes(userId!)
+    ) ?? [];
 
-const loggedInUser = selectedGroup?.users.find((groupUser) => groupUser._id === user._id);
+  const loggedInUser = selectedGroup?.users.find(
+    (groupUser) => groupUser._id === user._id
+  );
 
   return (
     <>
-
-<div style={{ position: "relative", width: "100%" }}>
-  <div
-    style={{
-      position: "fixed",
-      top: "17px",
-      right: "30px",
-      zIndex:"1000"
-    }}
-  >
-    <button
-      style={{
-        padding: "10px 20px",
-        backgroundColor: "#28a745",
-        color: "white",
-        border: "none",
-        borderRadius: "5px",
-        cursor: "pointer",
-      }}
-      onClick={() => setShowModal(true)}
-    >
-      Add Expense
-    </button>
-  </div>
-</div>
-
+      <div style={{ position: "relative", width: "100%" }}>
+        <div
+          style={{
+            position: "fixed",
+            top: "17px",
+            right: "30px",
+            zIndex: "1000",
+          }}
+        >
+          <button
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+            onClick={() => setShowModal(true)}
+          >
+            Add Expense
+          </button>
+        </div>
+      </div>
 
       {showModal && (
         <div
@@ -97,7 +98,7 @@ const loggedInUser = selectedGroup?.users.find((groupUser) => groupUser._id === 
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            zIndex:1000
+            zIndex: 1000,
           }}
         >
           <div
@@ -148,18 +149,11 @@ const loggedInUser = selectedGroup?.users.find((groupUser) => groupUser._id === 
                 >
                   <option value="">Select Payer</option>
 
-
-{loggedInUser && (
-  <option key={loggedInUser._id} value={loggedInUser._id}>
-    {loggedInUser.name}
-  </option>
-)}
-
-                  {/* {selectedGroup.users.map((user) => (
-                    <option key={user._id} value={user._id}>
-                      {user.name}
+                  {loggedInUser && (
+                    <option key={loggedInUser._id} value={loggedInUser._id}>
+                      {loggedInUser.name}
                     </option>
-                  ))} */}
+                  )}
                 </select>
               </div>
             )}
@@ -260,5 +254,3 @@ const loggedInUser = selectedGroup?.users.find((groupUser) => groupUser._id === 
 };
 
 export default AddExpenseForm;
-
-
